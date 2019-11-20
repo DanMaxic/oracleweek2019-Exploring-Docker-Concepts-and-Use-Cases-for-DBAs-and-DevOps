@@ -1,0 +1,38 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  # config.vm.synced_folder ".", "/vagrant", type: "nfs", nfs_udp: false
+  config.vm.provider 'virtualbox' do |vb|
+    vb.linked_clone = true
+    vb.memory =  1024
+    vb.cpus = 1
+  end
+
+  hosts.each do |hostname, ipaddr|
+    config.vm.box = "centos/7"
+    config.vm.define hostname do |node|
+      node.vm.hostname = hostname
+      node.vm.network 'private_network', ip: ipaddr
+      node.vm.provider('virtualbox') { |vbox| vbox.name = "#{hostname}" }
+      # node.vm.provision "shell", path: "machines-user-data/#{server.vm.hostname}.sh"
+    end
+  end
+
+
+
+   config.vm.define :ci_server do |server|
+     server.vm.box = "centos/7"
+     server.vm.hostname="ci-server"
+     server.vm.provider ('virtualbox') { | vb |  vb.name= "#{server.vm.hostname}" }
+     server.vm.provision "shell", path: "machines-user-data/#{server.vm.hostname}.sh"
+   end
+  
+   config.vm.define :mon_server do |server|
+     server.vm.box ="ubuntu/xenial64"
+     server.vm.hostname="mon-server"
+     server.vm.provider ('virtualbox') { | vb |  vb.name= "#{server.vm.hostname}" }
+     server.vm.provision "shell", path: "machines-user-data/#{server.vm.hostname}.sh"
+   end
+end
